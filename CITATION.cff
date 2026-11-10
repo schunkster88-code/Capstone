@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this relational hypergraph substrate architecture or benchmark suite in your research or software, please cite it as below."
+authors:
+  - family-names: "Schunk"
+    given-names: "Wesley A."
+title: "Deterministic Relational Hypergraphs as a Bounded-Context Substrate for Autonomous Software Maintenance and State Simulation"
+version: 1.0.0
+date-released: 2026-11-10
+license: MIT
+keywords:
+  - "relational-hypergraph"
+  - "sqlite-wal"
+  - "static-analysis"
+  - "dynamic-dispatch"
+  - "fault-localization"
+  - "bounded-context"
+  - "deterministic-simulation"

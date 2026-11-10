@@ -1,5 +1,11 @@
 # Deterministic Relational Hypergraphs for Bounded-Context Autonomous Systems
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Citation: CFF](https://img.shields.io/badge/Citation-CFF-blue.svg)](./CITATION.cff)
+[![Python: 3.14](https://img.shields.io/badge/Python-3.14-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
+[![Database: SQLite WAL](https://img.shields.io/badge/Database-SQLite%20WAL-003B57.svg?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+[![Tests: 64 passed](https://img.shields.io/badge/Tests-64%20passed-success.svg)](#)
+
 > **WGU B.S. Computer Science Capstone (C964) / Data Structures & Algorithms Applied Research**  
 > **Author:** Wesley A. Schunk  
 > **Repository:** `/home/wes/projects/CapStone`  
@@ -137,3 +143,27 @@ pytest
 * **[`refactor_benchmark.md`](file:///home/wes/projects/CapStone/refactor_benchmark.md)**: Linear 3-hop caller chain refactoring telemetry.
 * **[`dnd_substrate_benchmark.md`](file:///home/wes/projects/CapStone/dnd_substrate_benchmark.md)**: Single-tick CTE TTRPG mechanics, fog-of-war latency, and spell AoE mutations.
 * **[`campaign_simulation_benchmark.md`](file:///home/wes/projects/CapStone/campaign_simulation_benchmark.md)**: 25-tick multi-agent autonomous campaign benchmark report.
+
+---
+
+## 6. License & Citation
+
+### License
+This project is licensed under the **[MIT License](./LICENSE)** - see the [`LICENSE`](./LICENSE) file for details.  
+`Copyright (c) 2026 Wesley A. Schunk`
+
+### Academic Citation
+If you utilize this relational hypergraph substrate architecture, empirical gauntlet benchmarks, or deterministic world simulation engine in your research, coursework, or systems engineering work, please cite it as:
+
+```bibtex
+@software{schunk2026deterministic,
+  author       = {Wesley A. Schunk},
+  title        = {Deterministic Relational Hypergraphs as a Bounded-Context Substrate for Autonomous Software Maintenance and State Simulation},
+  year         = {2026},
+  month        = {11},
+  publisher    = {GitHub},
+  version      = {1.0.0},
+  url          = {https://github.com/schunkster88-code/Capstone}
+}
+```
+
