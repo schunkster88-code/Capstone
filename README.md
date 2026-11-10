@@ -4,7 +4,7 @@
 [![Citation: CFF](https://img.shields.io/badge/Citation-CFF-blue.svg)](./CITATION.cff)
 [![Python: 3.14](https://img.shields.io/badge/Python-3.14-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Database: SQLite WAL](https://img.shields.io/badge/Database-SQLite%20WAL-003B57.svg?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
-[![Tests: 64 passed](https://img.shields.io/badge/Tests-64%20passed-success.svg)](#)
+[![Tests: 69 passed](https://img.shields.io/badge/Tests-69%20passed-success.svg)](#)
 
 > **WGU B.S. Computer Science Capstone (C964) / Data Structures & Algorithms Applied Research**  
 > **Author:** Wesley A. Schunk  
