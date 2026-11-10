@@ -6,7 +6,7 @@ authors:
 title: "Deterministic Relational Hypergraphs as a Bounded-Context Substrate for Autonomous Software Maintenance and State Simulation"
 version: 1.0.0
 date-released: 2026-11-10
-license: MIT
+license: AGPL-3.0-only
 keywords:
   - "relational-hypergraph"
   - "sqlite-wal"
