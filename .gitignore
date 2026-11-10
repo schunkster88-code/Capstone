@@ -1,0 +1,30 @@
+# Virtual environment
+.venv/
+venv/
+ENV/
+
+# Python cache & artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# SQLite databases
+*.db-journal
+*.db-wal
+*.db-shm
+void.db
+void.db-journal
+void.db-wal
+void.db-shm
+sim.db-wal
+sim.db-shm
+sim.db-journal
+
+# IDE & OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+

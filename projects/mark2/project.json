@@ -1,0 +1,7 @@
+{
+  "name": "mark2",
+  "description": "Mark II architecture codebase graph substrate for large-scale code navigation and multi-lens dependency analysis",
+  "template": "codebase",
+  "created_at": "2026-11-01T00:12:45.048542",
+  "updated_at": "2026-11-01T00:12:45.048565"
+}

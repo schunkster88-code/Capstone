@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulation Inspector // Telemetry Viewer</title>
+    <style>
+        :root {
+            --bg: #090b10;
+            --panel-bg: #0f131c;
+            --card-bg: #141926;
+            --border: #1e2638;
+            --border-hover: #38bdf8;
+            --text: #e2e8f0;
+            --text-dim: #64748b;
+            --text-muted: #94a3b8;
+            --accent: #10b981;
+            --accent-glow: rgba(16, 185, 129, 0.2);
+            --danger: #ef4444;
+            --danger-bg: rgba(239, 68, 68, 0.15);
+            --warning: #f59e0b;
+            --warning-bg: rgba(245, 158, 11, 0.15);
+            --info: #38bdf8;
+            --btn-bg: #182032;
+            --btn-hover: #232f48;
+            --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Menlo, Monaco, Consolas, monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100vh;
+            width: 100vw;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: var(--font-mono);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            height: 48px;
+            padding: 0 18px;
+            background-color: var(--panel-bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-shrink: 0;
+        }
+
+        .title-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .title {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: #94a3b8;
+            text-transform: uppercase;
+        }
+
+        .badge {
+            font-size: 11px;
+            background: #1e293b;
+            color: var(--accent);
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid #334155;
+            font-weight: 600;
+        }
+
+        .badge-ro {
+            color: var(--info);
+            border-color: rgba(56, 189, 248, 0.3);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        a.tab-btn {
+            background-color: var(--btn-bg);
+            color: var(--text-dim);
+            text-decoration: none;
+            padding: 5px 12px;
+            font-size: 12px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            transition: all 0.15s ease-in-out;
+        }
+
+        a.tab-btn:hover {
+            color: var(--text);
+            background-color: var(--btn-hover);
+            border-color: var(--info);
+        }
+
+        a.tab-btn.active {
+            color: var(--accent);
+            border-color: var(--accent);
+            background-color: #064e3b22;
+        }
+
+        /* Top Control Bar */
+        .control-bar {
+            height: 52px;
+            padding: 0 20px;
+            background-color: #0b0f17;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-shrink: 0;
+        }
+
+        .step-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button {
+            background-color: var(--btn-bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 6px 14px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.15s ease-in-out;
+            user-select: none;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: var(--btn-hover);
+            border-color: var(--info);
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .play-btn {
+            background-color: #064e3b;
+            border-color: #059669;
+            color: #6ee7b7;
+            min-width: 82px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .play-btn:hover:not(:disabled) {
+            background-color: #047857;
+            border-color: #10b981;
+            color: #ecfdf5;
+        }
+
+        .play-btn.playing {
+            background-color: #7f1d1d;
+            border-color: #ef4444;
+            color: #fca5a5;
+        }
+
+        .play-btn.playing:hover:not(:disabled) {
+            background-color: #991b1b;
+            border-color: #f87171;
+            color: #fff;
+        }
+
+        .speed-select {
+            background-color: var(--btn-bg);
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+            padding: 5px 8px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 500;
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+        }
+
+        .speed-select:hover, .speed-select:focus {
+            border-color: var(--info);
+            color: var(--text);
+        }
+
+        .scrubber-container {
+            flex: 1;
+            min-width: 180px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            accent-color: var(--accent);
+            cursor: pointer;
+            height: 6px;
+            background: #1e2638;
+            border-radius: 3px;
+        }
+
+        .step-counter {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--info);
+            min-width: 105px;
+            text-align: right;
+            padding: 4px 8px;
+            background: #141926;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-dim);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .toggle-label input {
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+
+        .toggle-label.active {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* Two-Pane Layout: Strictly bounded within remaining viewport */
+        .viewer-container {
+            flex: 1;
+            height: calc(100vh - 100px);
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 1px;
+            background-color: var(--border);
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .pane {
+            background-color: var(--panel-bg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            min-height: 0;
+            height: 100%;
+        }
+
+        .pane-header {
+            height: 38px;
+            padding: 0 16px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0d111a;
+            flex-shrink: 0;
+        }
+
+        /* Main Canvas / Arena: Fully responsive without vertical cutoff */
+        .arena-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+            background-color: #07090e;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.03) 0%, transparent 60%),
+                linear-gradient(rgba(30, 38, 56, 0.2) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(30, 38, 56, 0.2) 1px, transparent 1px);
+            background-size: 100% 100%, 20px 20px, 20px 20px;
+            box-sizing: border-box;
+            min-height: 0;
+        }
+
+        #gridSvg {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            aspect-ratio: 1 / 1;
+            object-fit: contain;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #0b0e16;
+            display: block;
+        }
+
+        /* SVG Grid styling */
+        .grid-cell {
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+        }
+
+        .grid-cell:hover {
+            filter: brightness(1.25);
+        }
+
+        .grid-cell.selected {
+            stroke: var(--info) !important;
+            stroke-width: 3.5px !important;
+        }
+
+        .entity-marker {
+            cursor: pointer;
+            transition: transform 0.15s ease;
+        }
+
+        .entity-marker:hover circle.marker-outer {
+            stroke-width: 3.5px;
+            filter: drop-shadow(0 0 6px currentColor);
+        }
+
+        .entity-marker.selected circle.marker-outer {
+            stroke: #fef08a !important;
+            stroke-width: 4px !important;
+            filter: drop-shadow(0 0 8px #f59e0b) !important;
+        }
+
+        /* Disambiguation Tabs in Inspector */
+        .inspector-tabs {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab-pill {
+            background-color: #141b2a;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            font-family: var(--font-mono);
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.12s ease-in-out;
+        }
+
+        .tab-pill:hover {
+            color: var(--text);
+            border-color: var(--info);
+            background-color: #1c263c;
+        }
+
+        .tab-pill.active {
+            color: #fff;
+            border-color: var(--info);
+            background-color: #0369a1;
+        }
+
+        .tab-pill.entity-tab.active {
+            color: #fff;
+            border-color: #f59e0b;
+            background-color: #b45309;
+        }
+
+        .tab-pill.tile-tab.active {
+            color: #fff;
+            border-color: var(--info);
+            background-color: #0369a1;
+        }
+
+        .dot-indicator {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* Right Inspector Panel */
+        .inspector-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-height: 0;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 14px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .type-pill {
+            font-size: 10px;
+            text-transform: uppercase;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+
+        .type-pill.entity {
+            background-color: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+            border: 1px solid #d97706;
+        }
+
+        .type-pill.tile {
+            background-color: rgba(56, 189, 248, 0.2);
+            color: #38bdf8;
+            border: 1px solid #0284c7;
+        }
+
+        .property-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .prop-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            padding: 4px 0;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+        }
+
+        .prop-key {
+            color: var(--text-muted);
+            font-weight: 500;
+            word-break: break-all;
+        }
+
+        .prop-val {
+            font-weight: 600;
+            color: var(--text);
+            text-align: right;
+            word-break: break-all;
+            margin-left: 10px;
+        }
+
+        .val-num { color: #67e8f9; }
+        .val-bool-true { color: #34d399; font-weight: 700; }
+        .val-bool-false { color: #f87171; font-weight: 700; }
+        .val-str { color: #fde047; }
+
+        .empty-selection {
+            color: var(--text-dim);
+            font-size: 12px;
+            font-style: italic;
+            text-align: center;
+            padding: 24px 10px;
+        }
+
+        .events-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .event-item {
+            font-size: 11px;
+            padding: 6px 8px;
+            background: #0d111a;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .event-action {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .event-detail {
+            color: var(--text-dim);
+        }
+
+        .legend {
+            height: 34px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 11px;
+            color: var(--text-dim);
+            padding: 0 16px;
+            background: #0d111a;
+            border-top: 1px solid var(--border);
+            flex-shrink: 0;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-box {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+        }
+
+        @media (max-width: 850px) {
+            .viewer-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="title-area">
+            <span class="title">Simulation Inspector // Telemetry</span>
+            <span class="badge badge-ro">Read-Only Engine</span>
+            <span class="badge">SQLite WAL</span>
+            <div class="project-pill" title="Active Project Workspace" style="display: inline-flex; align-items: center; gap: 6px; background: #111726; border: 1px solid #1e293b; padding: 2px 8px; border-radius: 4px;">
+                <span style="color: var(--text-dim); font-size: 11px;">PROJECT:</span>
+                <select id="viewerProjectSelect" onchange="onSwitchViewerProject(this.value)" style="background: transparent; color: #38bdf8; border: none; font-family: var(--font-mono); font-size: 11px; font-weight: 600; outline: none; cursor: pointer;">
+                    <option value="default">default</option>
+                </select>
+            </div>
+        </div>
+        <div class="nav-links">
+            <a href="/" class="tab-btn">&larr; Raw IO Console</a>
+            <a href="/sim-viewer" class="tab-btn active">Sim Viewer</a>
+        </div>
+    </header>
+
+    <div class="control-bar">
+        <div class="step-controls">
+            <button id="prevBtn" onclick="navigateStep(-1)">&lt; Prev</button>
+            <button id="playBtn" class="play-btn" onclick="togglePlay()" title="Auto-step through simulation">Play &#9654;</button>
+            <button id="nextBtn" onclick="navigateStep(1)">Next &gt;</button>
+            <select id="playSpeedSelect" class="speed-select" onchange="changePlaySpeed(this.value)" title="Playback Speed">
+                <option value="4000" selected>0.25 FPS (4s)</option>
+                <option value="2000">0.5 FPS (2s)</option>
+                <option value="1000">1.0 FPS (1s)</option>
+                <option value="500">2.0 FPS (500ms)</option>
+                <option value="250">4.0 FPS (250ms)</option>
+            </select>
+        </div>
+
+        <div class="scrubber-container">
+            <span style="font-size: 11px; color: var(--text-dim);">Scrubber:</span>
+            <input type="range" id="stepScrubber" min="0" max="0" value="0" oninput="onScrubberInput(this.value)">
+        </div>
+
+        <span id="stepCounter" class="step-counter">Step: 0 / 0</span>
+
+        <label class="toggle-label" id="liveToggleLabel">
+            <input type="checkbox" id="liveFollow" onchange="toggleLiveFollow(this.checked)">
+            Live Follow (500ms)
+        </label>
+        <button onclick="fetchTelemetry(currentStep, true)">Refresh</button>
+    </div>
+
+    <main class="viewer-container">
+        <!-- Left: Arena / Canvas -->
+        <section class="pane">
+            <div class="pane-header">
+                <span>Simulation Arena (2D Substrate Grid)</span>
+                <span id="arenaStatus" style="font-size: 11px; color: var(--text-dim);">Loaded</span>
+            </div>
+            <div class="arena-wrapper">
+                <svg id="gridSvg" viewBox="0 0 400 400"></svg>
+            </div>
+            <div class="legend">
+                <div class="legend-item"><div class="legend-box" style="background: #141b2a; border: 1px solid #1e2638;"></div> Plain Tile</div>
+                <div class="legend-item"><div class="legend-box" style="background: rgba(16, 185, 129, 0.3); border: 1px solid #10b981;"></div> Resource</div>
+                <div class="legend-item"><div class="legend-box" style="background: rgba(239, 68, 68, 0.3); border: 1px solid #ef4444;"></div> Hazard</div>
+                <div class="legend-item"><div class="legend-box" style="background: #05070a; border: 1px dashed #334155;"></div> Impassable</div>
+                <div class="legend-item"><div class="legend-box" style="background: #f59e0b; border-radius: 50%;"></div> Agent</div>
+                <div class="legend-item"><div class="legend-box" style="background: #0284c7; border-radius: 50%;"></div> Drone</div>
+                <div class="legend-item"><div class="legend-box" style="background: #38bdf8; border: 1px solid #0284c7;"></div> Multi-Cluster</div>
+            </div>
+        </section>
+
+        <!-- Right: Inspector Panel -->
+        <section class="pane">
+            <div class="pane-header">
+                <span>Object Inspector</span>
+                <span id="inspectorMeta" style="font-size: 11px; color: var(--text-dim);">-</span>
+            </div>
+            <div class="inspector-body">
+                <!-- Selected Object Details & Disambiguation Tabs -->
+                <div class="card" id="selectionCard">
+                    <!-- Disambiguation Tabs rendered here when multiple targets exist -->
+                    <div id="inspectorTabsContainer" style="display: none;">
+                        <div class="inspector-tabs" id="inspectorTabs"></div>
+                    </div>
+
+                    <div class="card-header">
+                        <span class="card-title" id="inspectorTitle">No selection</span>
+                        <span class="type-pill" id="inspectorType" style="display: none;">-</span>
+                    </div>
+                    <div id="inspectorProps" class="empty-selection">
+                        Click a tile or entity token on the arena grid to inspect its dynamic properties.
+                    </div>
+                </div>
+
+                <!-- Step Events Feed -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Step Events</span>
+                        <span class="badge" id="eventCountBadge">0</span>
+                    </div>
+                    <div class="events-list" id="eventsList">
+                        <div class="empty-selection" style="padding: 10px;">No events in this step.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let currentStep = 0;
+        let maxStep = 0;
+        let currentTelemetry = null;
+
+        // Selection State: tracks selected tile coordinate and active inspected target (tile vs specific entity)
+        let selectedState = {
+            x: null,
+            y: null,
+            activeType: null, // 'cell' or 'entity'
+            activeEntityId: null
+        };
+
+        let liveFollowInterval = null;
+
+        const scrubberEl = document.getElementById('stepScrubber');
+        const stepCounterEl = document.getElementById('stepCounter');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const gridSvg = document.getElementById('gridSvg');
+        const liveFollowCheckbox = document.getElementById('liveFollow');
+        const liveToggleLabel = document.getElementById('liveToggleLabel');
+        const arenaStatus = document.getElementById('arenaStatus');
+
+        // Color palettes for different entity classes
+        function getEntityColors(entityId) {
+            if (entityId.startsWith('agent')) {
+                return { fill: '#d97706', stroke: '#fef3c7', tag: '#fbbf24', dot: '#f59e0b', text: '#000' };
+            } else if (entityId.startsWith('drone')) {
+                return { fill: '#0284c7', stroke: '#e0f2fe', tag: '#38bdf8', dot: '#0ea5e9', text: '#fff' };
+            } else {
+                return { fill: '#7c3aed', stroke: '#ede9fe', tag: '#c084fc', dot: '#8b5cf6', text: '#fff' };
+            }
+        }
+
+        // Fetch telemetry frame
+        async function fetchTelemetry(step = null, force = false) {
+            try {
+                let url = '/api/sim/telemetry';
+                if (step !== null) {
+                    url += `?step=${step}`;
+                } else {
+                    url += '?latest=true';
+                }
+
+                const res = await fetch(url);
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`);
+                }
+                const data = await res.json();
+                renderTelemetry(data);
+                arenaStatus.innerText = `Step ${data.step} / ${data.max_step}`;
+            } catch (err) {
+                arenaStatus.innerText = `Error: ${err.message}`;
+            }
+        }
+
+        function renderTelemetry(data) {
+            currentTelemetry = data;
+            currentStep = data.step;
+            maxStep = data.max_step;
+
+            // Update scrubber and controls
+            scrubberEl.max = maxStep;
+            scrubberEl.value = currentStep;
+            stepCounterEl.innerText = `Step: ${currentStep} / ${maxStep}`;
+
+            prevBtn.disabled = (currentStep <= 0);
+            nextBtn.disabled = (currentStep >= maxStep);
+
+            // Render 2D Grid with clustered entities
+            renderGrid(data);
+
+            // Re-render inspector if selection exists
+            renderInspector();
+
+            // Render events
+            renderEvents(data.events || []);
+        }
+
+        function renderGrid(data) {
+            const width = data.grid.width || 2;
+            const height = data.grid.height || 2;
+            const svgSize = 400;
+            const cellW = svgSize / width;
+            const cellH = svgSize / height;
+
+            gridSvg.innerHTML = '';
+
+            // Group entities by tile coordinate (x, y)
+            const tileEntityMap = new Map();
+            (data.entities || []).forEach(entity => {
+                const key = `${entity.x},${entity.y}`;
+                if (!tileEntityMap.has(key)) {
+                    tileEntityMap.set(key, []);
+                }
+                tileEntityMap.get(key).push(entity);
+            });
+
+            // 1. Draw cells
+            (data.cells || []).forEach(cell => {
+                const x = cell.x;
+                const y = cell.y;
+                const attrs = cell.attributes || {};
+
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                g.setAttribute('class', 'grid-cell');
+                g.setAttribute('data-x', x);
+                g.setAttribute('data-y', y);
+
+                const isTileSelected = (selectedState.x === x && selectedState.y === y);
+                if (isTileSelected) g.classList.add('selected');
+
+                // Compute color based on terrain data and wave fields
+                let fillColor = '#101624';
+                let strokeColor = '#1e2638';
+                let strokeWidth = '1';
+                let cellBoxShadow = 'none';
+
+                if (attrs.traversable === false || attrs.zone === 'interior_wall' || attrs.zone === 'wall') {
+                    fillColor = '#06080e';
+                    strokeColor = '#334155';
+                } else if (attrs.u !== undefined) {
+                    // Option B: True Bipolar Wave (Blue crests, Magenta/Purple troughs)
+                    const u = Number(attrs.u) || 0.0;
+                    if (u >= 0) {
+                        const alpha = Math.min(1.0, Math.max(0.05, u));
+                        fillColor = `rgba(0, 200, 255, ${alpha})`;
+                        strokeColor = u > 0.4 ? `rgba(0, 255, 200, ${u * 0.8})` : 'rgba(0, 200, 255, 0.3)';
+                    } else {
+                        const absU = Math.abs(u);
+                        const alpha = Math.min(1.0, Math.max(0.05, absU));
+                        fillColor = `rgba(220, 50, 150, ${alpha})`;
+                        strokeColor = absU > 0.4 ? `rgba(255, 100, 200, ${absU * 0.8})` : 'rgba(220, 50, 150, 0.3)';
+                    }
+                    if (Math.abs(u) > 0.4) {
+                        const amp = Math.abs(u);
+                        cellBoxShadow = `inset 0 0 ${amp * 12}px ${u >= 0 ? `rgba(0, 255, 200, ${amp * 0.8})` : `rgba(255, 100, 200, ${amp * 0.8})`}`;
+                    }
+                } else if (attrs.intensity !== undefined || attrs.wave_intensity !== undefined) {
+                    // Option A: Smooth Phosphorescent Cyan/Teal Glow based on intensity (0.0 to 1.0)
+                    const intensity = Number(attrs.intensity !== undefined ? attrs.intensity : attrs.wave_intensity) || 0.0;
+                    const alpha = Math.min(1.0, Math.max(0.05, intensity));
+                    fillColor = `rgba(0, 240, 255, ${alpha})`;
+                    strokeColor = intensity > 0.4 ? `rgba(0, 255, 200, ${intensity * 0.8})` : 'rgba(0, 240, 255, 0.25)';
+                    cellBoxShadow = intensity > 0.4 
+                        ? `inset 0 0 ${intensity * 12}px rgba(0, 255, 200, ${intensity * 0.8})` 
+                        : 'none';
+                } else if ((attrs.hazard || 0) > 0) {
+                    const hazIntensity = Math.min(1, (attrs.hazard || 0) / 50);
+                    fillColor = `rgba(239, 68, 68, ${0.15 + hazIntensity * 0.35})`;
+                    strokeColor = 'rgba(239, 68, 68, 0.6)';
+                } else if ((attrs.resource || 0) > 0) {
+                    const resIntensity = Math.min(1, (attrs.resource || 0) / 2);
+                    fillColor = `rgba(16, 185, 129, ${0.15 + resIntensity * 0.35})`;
+                    strokeColor = 'rgba(16, 185, 129, 0.6)';
+                }
+
+                const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rect.setAttribute('x', x * cellW);
+                rect.setAttribute('y', y * cellH);
+                rect.setAttribute('width', cellW);
+                rect.setAttribute('height', cellH);
+                rect.setAttribute('fill', fillColor);
+                rect.setAttribute('stroke', strokeColor);
+                rect.setAttribute('stroke-width', strokeWidth);
+                rect.style.backgroundColor = fillColor;
+                rect.style.boxShadow = cellBoxShadow;
+                if (cellBoxShadow !== 'none') {
+                    const glowVal = (attrs.u !== undefined) ? Math.abs(attrs.u) : (attrs.intensity || attrs.wave_intensity || 0.5);
+                    rect.style.filter = `drop-shadow(0 0 ${glowVal * 8}px ${strokeColor})`;
+                }
+                g.appendChild(rect);
+
+                // Coordinates label in cell corner
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', x * cellW + 6);
+                text.setAttribute('y', y * cellH + 13);
+                const hasBrightWave = (attrs.intensity && attrs.intensity > 0.6) || (attrs.u && Math.abs(attrs.u) > 0.6);
+                text.setAttribute('fill', hasBrightWave ? 'rgba(255, 255, 255, 0.85)' : '#475569');
+                text.setAttribute('font-size', '9px');
+                text.setAttribute('font-family', 'monospace');
+                text.textContent = `${x},${y}`;
+                g.appendChild(text);
+
+                // Resource indicator if present
+                if ((attrs.resource || 0) > 0) {
+                    const resDot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    resDot.setAttribute('cx', x * cellW + cellW - 10);
+                    resDot.setAttribute('cy', y * cellH + 10);
+                    resDot.setAttribute('r', 3.5);
+                    resDot.setAttribute('fill', '#10b981');
+                    g.appendChild(resDot);
+                }
+
+                // Hazard indicator if present
+                if ((attrs.hazard || 0) > 0) {
+                    const hazText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    hazText.setAttribute('x', x * cellW + cellW - 18);
+                    hazText.setAttribute('y', y * cellH + 12);
+                    hazText.setAttribute('fill', '#ef4444');
+                    hazText.setAttribute('font-size', '9px');
+                    hazText.setAttribute('font-weight', 'bold');
+                    hazText.textContent = '▲';
+                    g.appendChild(hazText);
+                }
+
+                // If multiple entities occupy this tile, render a cluster count badge in cell
+                const tileEntities = tileEntityMap.get(`${x},${y}`) || [];
+                if (tileEntities.length > 1) {
+                    const badgeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                    const badgeX = x * cellW + cellW - 24;
+                    const badgeY = y * cellH + cellH - 14;
+
+                    const bRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    bRect.setAttribute('x', badgeX);
+                    bRect.setAttribute('y', badgeY);
+                    bRect.setAttribute('width', 20);
+                    bRect.setAttribute('height', 11);
+                    bRect.setAttribute('rx', 3);
+                    bRect.setAttribute('fill', '#0284c7');
+                    bRect.setAttribute('stroke', '#38bdf8');
+                    bRect.setAttribute('stroke-width', '0.5');
+
+                    const bText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    bText.setAttribute('x', badgeX + 10);
+                    bText.setAttribute('y', badgeY + 8.5);
+                    bText.setAttribute('text-anchor', 'middle');
+                    bText.setAttribute('fill', '#fff');
+                    bText.setAttribute('font-size', '8px');
+                    bText.setAttribute('font-weight', 'bold');
+                    bText.setAttribute('font-family', 'monospace');
+                    bText.textContent = `${tileEntities.length}x`;
+
+                    badgeGroup.appendChild(bRect);
+                    badgeGroup.appendChild(bText);
+                    g.appendChild(badgeGroup);
+                }
+
+                // Clicking anywhere on the tile selects the tile and defaults to either the first entity or the cell
+                g.addEventListener('click', (e) => {
+                    selectTile(x, y, null);
+                });
+
+                gridSvg.appendChild(g);
+            });
+
+            // 2. Draw entities with collision avoidance (offsets & cluster layout)
+            tileEntityMap.forEach((entities, key) => {
+                const [x, y] = key.split(',').map(Number);
+                const count = entities.length;
+                const baseCx = x * cellW + cellW / 2;
+                const baseCy = y * cellH + cellH / 2;
+
+                // Determine position offsets for each entity in the cluster
+                entities.forEach((entity, index) => {
+                    let cx = baseCx;
+                    let cy = baseCy;
+                    let radius = Math.min(cellW, cellH) * 0.25;
+
+                    if (count === 2) {
+                        // Side-by-side offset
+                        const offset = cellW * 0.21;
+                        radius = Math.min(cellW, cellH) * 0.19;
+                        cx = (index === 0) ? baseCx - offset : baseCx + offset;
+                    } else if (count === 3) {
+                        // Triangle layout
+                        const offset = cellW * 0.19;
+                        radius = Math.min(cellW, cellH) * 0.16;
+                        if (index === 0) {
+                            cy = baseCy - offset * 0.7;
+                        } else if (index === 1) {
+                            cx = baseCx - offset;
+                            cy = baseCy + offset * 0.7;
+                        } else {
+                            cx = baseCx + offset;
+                            cy = baseCy + offset * 0.7;
+                        }
+                    } else if (count >= 4) {
+                        // 2x2 Quadrant layout
+                        const offset = cellW * 0.20;
+                        radius = Math.min(cellW, cellH) * 0.14;
+                        const col = index % 2;
+                        const row = Math.floor(index / 2) % 2;
+                        cx = baseCx + (col === 0 ? -offset : offset);
+                        cy = baseCy + (row === 0 ? -offset : offset);
+                    }
+
+                    const eg = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                    eg.setAttribute('class', 'entity-marker');
+                    eg.setAttribute('data-id', entity.id);
+
+                    const isSelected = (
+                        selectedState.x === x &&
+                        selectedState.y === y &&
+                        selectedState.activeType === 'entity' &&
+                        selectedState.activeEntityId === entity.id
+                    );
+                    if (isSelected) eg.classList.add('selected');
+
+                    const colors = getEntityColors(entity.id);
+
+                    // Outer circle token
+                    const outer = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    outer.setAttribute('class', 'marker-outer');
+                    outer.setAttribute('cx', cx);
+                    outer.setAttribute('cy', cy);
+                    outer.setAttribute('r', radius);
+                    outer.setAttribute('fill', colors.fill);
+                    outer.setAttribute('stroke', colors.stroke);
+                    outer.setAttribute('stroke-width', '1.5');
+                    eg.appendChild(outer);
+
+                    // Inner glyph / id abbreviation
+                    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    label.setAttribute('x', cx);
+                    label.setAttribute('y', cy + Math.max(3, radius * 0.35));
+                    label.setAttribute('text-anchor', 'middle');
+                    label.setAttribute('fill', colors.text);
+                    label.setAttribute('font-size', `${Math.max(8, Math.floor(radius * 0.85))}px`);
+                    label.setAttribute('font-weight', 'bold');
+                    label.setAttribute('font-family', 'monospace');
+                    label.textContent = entity.id.substring(0, 2).toUpperCase();
+                    eg.appendChild(label);
+
+                    // If single entity, render clear text tag below; if clustered, show SVG title tooltip
+                    if (count === 1) {
+                        const tag = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        tag.setAttribute('x', cx);
+                        tag.setAttribute('y', cy + radius + 11);
+                        tag.setAttribute('text-anchor', 'middle');
+                        tag.setAttribute('fill', colors.tag);
+                        tag.setAttribute('font-size', '9px');
+                        tag.setAttribute('font-family', 'monospace');
+                        tag.textContent = entity.id;
+                        eg.appendChild(tag);
+                    }
+
+                    // Tooltip
+                    const titleEl = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                    titleEl.textContent = `${entity.id} @ (${x}, ${y})\nClick to inspect`;
+                    eg.appendChild(titleEl);
+
+                    // Clicking an entity marker selects this specific entity directly
+                    eg.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        selectTile(x, y, entity.id);
+                    });
+
+                    gridSvg.appendChild(eg);
+                });
+            });
+        }
+
+        // Select tile and optionally focus on a specific entity on that tile
+        function selectTile(x, y, targetEntityId = null) {
+            selectedState.x = x;
+            selectedState.y = y;
+
+            const entitiesOnTile = (currentTelemetry?.entities || []).filter(e => e.x === x && e.y === y);
+
+            if (targetEntityId) {
+                selectedState.activeType = 'entity';
+                selectedState.activeEntityId = targetEntityId;
+            } else if (entitiesOnTile.length > 0) {
+                // Default to first entity on tile if present, or maintain active entity if still on this tile
+                const match = entitiesOnTile.find(e => e.id === selectedState.activeEntityId);
+                if (match) {
+                    selectedState.activeType = 'entity';
+                    selectedState.activeEntityId = match.id;
+                } else {
+                    selectedState.activeType = 'entity';
+                    selectedState.activeEntityId = entitiesOnTile[0].id;
+                }
+            } else {
+                selectedState.activeType = 'cell';
+                selectedState.activeEntityId = null;
+            }
+
+            highlightGridSelection();
+            renderInspector();
+        }
+
+        function highlightGridSelection() {
+            document.querySelectorAll('.grid-cell').forEach(el => el.classList.remove('selected'));
+            document.querySelectorAll('.entity-marker').forEach(el => el.classList.remove('selected'));
+
+            if (selectedState.x === null) return;
+
+            // Highlight cell
+            const cellEl = document.querySelector(`.grid-cell[data-x="${selectedState.x}"][data-y="${selectedState.y}"]`);
+            if (cellEl) cellEl.classList.add('selected');
+
+            // If active target is entity, highlight its specific marker
+            if (selectedState.activeType === 'entity' && selectedState.activeEntityId) {
+                const entEl = document.querySelector(`.entity-marker[data-id="${selectedState.activeEntityId}"]`);
+                if (entEl) entEl.classList.add('selected');
+            }
+        }
+
+        function renderInspector() {
+            const tabsContainer = document.getElementById('inspectorTabsContainer');
+            const tabsEl = document.getElementById('inspectorTabs');
+            const titleEl = document.getElementById('inspectorTitle');
+            const typeEl = document.getElementById('inspectorType');
+            const propsEl = document.getElementById('inspectorProps');
+            const metaEl = document.getElementById('inspectorMeta');
+
+            if (selectedState.x === null || !currentTelemetry) {
+                tabsContainer.style.display = 'none';
+                titleEl.innerText = 'No selection';
+                typeEl.style.display = 'none';
+                metaEl.innerText = '-';
+                propsEl.className = 'empty-selection';
+                propsEl.innerHTML = 'Click a tile or entity token on the arena grid to inspect its dynamic properties.';
+                return;
+            }
+
+            const x = selectedState.x;
+            const y = selectedState.y;
+            const cell = (currentTelemetry.cells || []).find(c => c.x === x && c.y === y) || { x, y, attributes: {} };
+            const entitiesOnTile = (currentTelemetry.entities || []).filter(e => e.x === x && e.y === y);
+
+            // 1. Build Disambiguation Tabs Header if there are entities on this tile
+            if (entitiesOnTile.length > 0) {
+                tabsContainer.style.display = 'block';
+                tabsEl.innerHTML = '';
+
+                // Tile Tab
+                const tileTab = document.createElement('button');
+                tileTab.className = `tab-pill tile-tab ${selectedState.activeType === 'cell' ? 'active' : ''}`;
+                tileTab.innerHTML = `<span class="dot-indicator" style="background: #38bdf8;"></span> Tile (${x}, ${y})`;
+                tileTab.onclick = () => {
+                    selectedState.activeType = 'cell';
+                    selectedState.activeEntityId = null;
+                    highlightGridSelection();
+                    renderInspector();
+                };
+                tabsEl.appendChild(tileTab);
+
+                // Entity Tabs for each co-located entity
+                entitiesOnTile.forEach(ent => {
+                    const entTab = document.createElement('button');
+                    const isEntActive = (selectedState.activeType === 'entity' && selectedState.activeEntityId === ent.id);
+                    entTab.className = `tab-pill entity-tab ${isEntActive ? 'active' : ''}`;
+                    const colors = getEntityColors(ent.id);
+                    entTab.innerHTML = `<span class="dot-indicator" style="background: ${colors.dot};"></span> ${ent.id}`;
+                    entTab.onclick = () => {
+                        selectedState.activeType = 'entity';
+                        selectedState.activeEntityId = ent.id;
+                        highlightGridSelection();
+                        renderInspector();
+                    };
+                    tabsEl.appendChild(entTab);
+                });
+            } else {
+                tabsContainer.style.display = 'none';
+                selectedState.activeType = 'cell';
+                selectedState.activeEntityId = null;
+            }
+
+            // 2. Render properties for the active target
+            typeEl.style.display = 'inline-block';
+            let titleText = '';
+            let attributes = {};
+
+            if (selectedState.activeType === 'entity') {
+                const targetEntity = entitiesOnTile.find(e => e.id === selectedState.activeEntityId) || entitiesOnTile[0];
+                if (targetEntity) {
+                    titleText = `Entity: ${targetEntity.id}`;
+                    typeEl.innerText = 'Entity';
+                    typeEl.className = 'type-pill entity';
+                    metaEl.innerText = `At Tile (${targetEntity.x}, ${targetEntity.y}) [${entitiesOnTile.length} on tile]`;
+                    attributes = {
+                        id: targetEntity.id,
+                        x: targetEntity.x,
+                        y: targetEntity.y,
+                        ...(targetEntity.attributes || {})
+                    };
+                }
+            } else {
+                titleText = `Tile (${cell.x}, ${cell.y})`;
+                typeEl.innerText = 'Tile';
+                typeEl.className = 'type-pill tile';
+                metaEl.innerText = entitiesOnTile.length > 0 ? `Occupied by ${entitiesOnTile.length} entity(ies)` : `Empty Tile`;
+                attributes = {
+                    x: cell.x,
+                    y: cell.y,
+                    ...(cell.attributes || {})
+                };
+            }
+
+            titleEl.innerText = titleText;
+            propsEl.className = 'property-list';
+            propsEl.innerHTML = '';
+
+            // Dynamic key-value renderer: loops over attributes dynamically
+            Object.keys(attributes).forEach(key => {
+                const val = attributes[key];
+                const row = document.createElement('div');
+                row.className = 'prop-row';
+
+                const kSpan = document.createElement('span');
+                kSpan.className = 'prop-key';
+                kSpan.innerText = key;
+
+                const vSpan = document.createElement('span');
+                vSpan.className = 'prop-val';
+
+                if (typeof val === 'number') {
+                    vSpan.classList.add('val-num');
+                    vSpan.innerText = Number.isInteger(val) ? val : val.toFixed(2);
+                } else if (typeof val === 'boolean') {
+                    vSpan.classList.add(val ? 'val-bool-true' : 'val-bool-false');
+                    vSpan.innerText = val ? 'TRUE' : 'FALSE';
+                } else if (typeof val === 'object' && val !== null) {
+                    vSpan.innerText = JSON.stringify(val);
+                } else {
+                    vSpan.classList.add('val-str');
+                    vSpan.innerText = String(val);
+                }
+
+                row.appendChild(kSpan);
+                row.appendChild(vSpan);
+                propsEl.appendChild(row);
+            });
+        }
+
+        function renderEvents(events) {
+            const listEl = document.getElementById('eventsList');
+            const badgeEl = document.getElementById('eventCountBadge');
+            badgeEl.innerText = events.length;
+
+            if (!events || events.length === 0) {
+                listEl.innerHTML = '<div class="empty-selection" style="padding: 10px;">No events in this step.</div>';
+                return;
+            }
+
+            listEl.innerHTML = '';
+            events.forEach(ev => {
+                const item = document.createElement('div');
+                item.className = 'event-item';
+
+                const act = document.createElement('div');
+                act.className = 'event-action';
+                act.innerText = ev.action || 'event';
+
+                const det = document.createElement('div');
+                det.className = 'event-detail';
+
+                // Display dynamic key-values of event object
+                const details = [];
+                Object.keys(ev).forEach(k => {
+                    if (k !== 'action') details.push(`${k}: ${ev[k]}`);
+                });
+                det.innerText = details.join(' | ');
+
+                item.appendChild(act);
+                if (details.length > 0) item.appendChild(det);
+                listEl.appendChild(item);
+            });
+        }
+
+        let playInterval = null;
+        let playSpeedMs = 4000; // Default 0.25 FPS (4 seconds per step)
+
+        function togglePlay() {
+            if (playInterval) {
+                stopPlay();
+            } else {
+                startPlay();
+            }
+        }
+
+        function startPlay() {
+            const playBtn = document.getElementById('playBtn');
+            if (liveFollowCheckbox && liveFollowCheckbox.checked) {
+                liveFollowCheckbox.checked = false;
+                toggleLiveFollow(false);
+            }
+
+            if (currentStep >= maxStep && maxStep > 0) {
+                fetchTelemetry(0);
+            }
+
+            if (playBtn) {
+                playBtn.innerHTML = 'Pause &#10074;&#10074;';
+                playBtn.classList.add('playing');
+            }
+
+            playInterval = setInterval(async () => {
+                if (currentStep < maxStep) {
+                    await fetchTelemetry(currentStep + 1);
+                } else {
+                    try {
+                        const res = await fetch('/api/sim/telemetry?latest=true');
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (data.max_step > maxStep) {
+                                renderTelemetry(data);
+                                return;
+                            }
+                        }
+                    } catch (e) {}
+
+                    stopPlay();
+                }
+            }, playSpeedMs);
+        }
+
+        function stopPlay() {
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+            const playBtn = document.getElementById('playBtn');
+            if (playBtn) {
+                playBtn.innerHTML = 'Play &#9654;';
+                playBtn.classList.remove('playing');
+            }
+        }
+
+        function changePlaySpeed(val) {
+            playSpeedMs = parseInt(val, 10) || 4000;
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+                startPlay();
+            }
+        }
+
+        function navigateStep(delta) {
+            const target = currentStep + delta;
+            if (target >= 0 && target <= maxStep) {
+                fetchTelemetry(target);
+            }
+        }
+
+        function onScrubberInput(val) {
+            fetchTelemetry(parseInt(val, 10));
+        }
+
+        function toggleLiveFollow(enable) {
+            if (enable) {
+                liveToggleLabel.classList.add('active');
+                if (!liveFollowInterval) {
+                    liveFollowInterval = setInterval(async () => {
+                        try {
+                            const res = await fetch('/api/sim/telemetry?latest=true');
+                            if (res.ok) {
+                                const data = await res.json();
+                                if (data.step !== currentStep || data.max_step !== maxStep) {
+                                    renderTelemetry(data);
+                                }
+                            }
+                        } catch (e) {}
+                    }, 500);
+                }
+            } else {
+                liveToggleLabel.classList.remove('active');
+                if (liveFollowInterval) {
+                    clearInterval(liveFollowInterval);
+                    liveFollowInterval = null;
+                }
+            }
+        }
+
+        async function loadViewerProjects() {
+            try {
+                const res = await fetch('/api/projects');
+                if (!res.ok) return;
+                const projects = await res.json();
+                const sel = document.getElementById('viewerProjectSelect');
+                if (!sel) return;
+                sel.innerHTML = '';
+                projects.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.name;
+                    opt.innerText = p.name + (p.scripts_count > 0 ? ` (${p.scripts_count} scripts)` : '');
+                    if (p.is_active) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+            } catch (e) {}
+        }
+
+        async function onSwitchViewerProject(name) {
+            try {
+                await fetch('/api/projects/activate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+                stopPlay();
+                fetchTelemetry(null, true);
+            } catch (e) {}
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadViewerProjects();
+            fetchTelemetry(null);
+        });
+    </script>
+</body>
+</html>

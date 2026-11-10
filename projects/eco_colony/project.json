@@ -1,0 +1,7 @@
+{
+  "name": "eco_colony",
+  "description": "Ant colony food foraging simulation",
+  "template": "sim",
+  "created_at": "2026-10-31T22:35:21.966431",
+  "updated_at": "2026-10-31T22:35:21.966449"
+}

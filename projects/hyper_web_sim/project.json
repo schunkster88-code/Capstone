@@ -1,0 +1,7 @@
+{
+  "name": "hyper_web_sim",
+  "description": "Graph-relational hybrid substrate with hyperlinked rows and script execution nodes",
+  "template": "sim",
+  "created_at": "2026-10-31T22:56:19.928795",
+  "updated_at": "2026-10-31T22:56:19.928810"
+}

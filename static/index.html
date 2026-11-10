@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Void Substrate Raw IO</title>
+    <style>
+        :root {
+            --bg: #090b10;
+            --panel-bg: #0f131c;
+            --border: #1e2638;
+            --border-focus: #3b82f6;
+            --text: #e2e8f0;
+            --text-dim: #64748b;
+            --accent: #10b981;
+            --danger: #ef4444;
+            --btn-bg: #182032;
+            --btn-hover: #232f48;
+            --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Menlo, Monaco, Consolas, monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: var(--font-mono);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            padding: 12px 20px;
+            background-color: var(--panel-bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .title-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .title {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: #94a3b8;
+            text-transform: uppercase;
+        }
+
+        .badge {
+            font-size: 11px;
+            background: #1e293b;
+            color: var(--accent);
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid #334155;
+        }
+
+        .project-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #111726;
+            border: 1px solid #1e293b;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .project-dropdown {
+            background: transparent;
+            color: #38bdf8;
+            border: none;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .project-dropdown option {
+            background-color: #0f131c;
+            color: #e2e8f0;
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button {
+            background-color: var(--btn-bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 6px 14px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.15s ease-in-out;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        button:hover {
+            background-color: var(--btn-hover);
+            border-color: #3b82f6;
+        }
+
+        button.primary {
+            background-color: #064e3b;
+            border-color: #059669;
+            color: #6ee7b7;
+        }
+
+        button.primary:hover {
+            background-color: #047857;
+            color: #ecfdf5;
+        }
+
+        .status-bar {
+            padding: 6px 20px;
+            background-color: #0a0d14;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-dim);
+        }
+
+        #statusIndicator {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .console-container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px;
+            background-color: var(--border);
+            overflow: hidden;
+        }
+
+        .pane {
+            background-color: var(--panel-bg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .pane-header {
+            padding: 10px 16px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pane-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .pane-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            font-size: 11px;
+            padding: 2px 6px;
+            cursor: pointer;
+        }
+
+        .pane-btn:hover {
+            color: var(--text);
+            background: #1e293b;
+        }
+
+        #cmdInput {
+            flex: 1;
+            background-color: var(--bg);
+            color: #f1f5f9;
+            border: none;
+            padding: 16px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.5;
+            resize: none;
+            outline: none;
+            tab-size: 2;
+        }
+
+        #outputStream {
+            flex: 1;
+            background-color: var(--bg);
+            color: #93c5fd;
+            padding: 16px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.5;
+            overflow: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        @media (max-width: 768px) {
+            .console-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="title-area">
+            <span class="title">Void Substrate // Raw IO</span>
+            <span class="badge">SQLite WAL</span>
+            <div class="project-pill" title="Active Project Workspace">
+                <span style="color: var(--text-dim); font-size: 11px;">PROJECT:</span>
+                <select id="projectSelect" onchange="onSwitchProject(this.value)" class="project-dropdown">
+                    <option value="default">default</option>
+                </select>
+                <button class="pane-btn" onclick="promptNewProject()" title="Create New Project" style="padding: 2px 6px; font-weight: bold; border-left: 1px solid #1e293b;">+ New</button>
+            </div>
+        </div>
+        <div class="actions">
+            <button class="primary" onclick="submitCommand()">Run (Ctrl+Enter)</button>
+            <button onclick="fetchSchema()">Inspect Schema</button>
+            <button onclick="showLLMInstructions()">Copy LLM Prompt</button>
+            <button onclick="copyOutput()">Copy Output</button>
+            <button onclick="clearInput()">Clear Input</button>
+            <button onclick="clearOutput()">Clear Output</button>
+            <a href="/sim-viewer" style="text-decoration: none;"><button type="button">Sim Viewer &rarr;</button></a>
+        </div>
+    </header>
+
+    <div class="status-bar">
+        <span>STATUS: <span id="statusIndicator">Ready</span></span>
+        <span>SHORTCUT: [Ctrl+Enter] / [Cmd+Enter] to execute</span>
+    </div>
+
+    <main class="console-container">
+        <section class="pane">
+            <div class="pane-header">
+                <span>Input Command Buffer (Raw SQL)</span>
+                <div class="pane-actions">
+                    <button class="pane-btn" onclick="clearInput()">Clear</button>
+                </div>
+            </div>
+            <textarea id="cmdInput" placeholder="Enter SQL query, DDL, or multi-statement script...&#10;&#10;e.g.&#10;CREATE TABLE nodes (id INTEGER PRIMARY KEY, name TEXT);&#10;INSERT INTO nodes (name) VALUES ('alpha'), ('beta');" spellcheck="false"></textarea>
+        </section>
+
+        <section class="pane">
+            <div class="pane-header">
+                <span>Raw Output Stream (JSON)</span>
+                <div class="pane-actions">
+                    <button class="pane-btn" id="copyOutputBtn" onclick="copyOutput()">Copy</button>
+                    <button class="pane-btn" onclick="clearOutput()">Clear</button>
+                </div>
+            </div>
+            <pre id="outputStream">// Stream ready.</pre>
+        </section>
+    </main>
+
+    <script>
+        const inputEl = document.getElementById('cmdInput');
+        const outputEl = document.getElementById('outputStream');
+        const statusEl = document.getElementById('statusIndicator');
+
+        inputEl.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                submitCommand();
+            }
+        });
+
+        function setStatus(text, isError = false) {
+            statusEl.innerText = text;
+            statusEl.style.color = isError ? 'var(--danger)' : 'var(--accent)';
+        }
+
+        async function submitCommand() {
+            const sql = inputEl.value.trim();
+            if (!sql) return;
+            setStatus('Executing...');
+            try {
+                const res = await fetch('/api/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sql })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    outputEl.innerText = JSON.stringify(data.result, null, 2);
+                    setStatus('Execution success');
+                    if (data.result && (data.result.type === 'project_create' || data.result.type === 'project_activate')) {
+                        loadProjects();
+                    }
+                } else {
+                    outputEl.innerText = `[ERROR]: ${data.detail || 'Execution failed'}`;
+                    setStatus('Execution failed', true);
+                }
+            } catch (err) {
+                outputEl.innerText = `[NETWORK_ERROR]: ${err.message}`;
+                setStatus('Network error', true);
+            }
+        }
+
+        async function fetchSchema() {
+            setStatus('Fetching schema...');
+            try {
+                const res = await fetch('/api/schema');
+                const data = await res.json();
+                outputEl.innerText = JSON.stringify(data.schema, null, 2);
+                setStatus(`Schema fetched (${data.schema.length} objects)`);
+            } catch (err) {
+                outputEl.innerText = `[ERROR]: ${err.message}`;
+                setStatus('Failed to fetch schema', true);
+            }
+        }
+
+        function clearInput() {
+            inputEl.value = '';
+            inputEl.focus();
+        }
+
+        function clearOutput() {
+            outputEl.innerText = '// Stream cleared.';
+        }
+
+        async function copyOutput() {
+            const text = outputEl.innerText;
+            if (!text) return;
+            try {
+                await navigator.clipboard.writeText(text);
+                setStatus('Output stream copied to clipboard');
+                const copyBtn = document.getElementById('copyOutputBtn');
+                if (copyBtn) {
+                    const originalText = copyBtn.innerText;
+                    copyBtn.innerText = 'Copied!';
+                    setTimeout(() => {
+                        copyBtn.innerText = originalText;
+                    }, 1500);
+                }
+            } catch (err) {
+                setStatus('Failed to copy output', true);
+            }
+        }
+
+        const LLM_SYSTEM_PROMPT = `# SYSTEM INSTRUCTIONS: RAW I/O CONSOLE OPERATOR (SQLITE & SIMULATION ENGINE)
+
+You are interacting with a human operator via the Void Substrate Raw I/O Console.
+The operator enters commands into the console's "Input Command Buffer" and views execution results in the "Raw Output Stream".
+
+### CRITICAL INTERACTION RULES:
+1. Always output clean, copy-pasteable blocks that the operator can drop directly into the Command Buffer and execute with [Ctrl+Enter].
+2. Do not output hypothetical curl commands or raw HTTP JSON payloads unless the user explicitly asks for API syntax. The operator executes through the Web Console.
+3. Every project is an isolated package under "projects/<project_name>/" bundling "project.db" and its "scripts/" directory.
+
+---
+
+## 1. PROJECT & WORKSPACE COMMANDS:
+- Create a new project workspace (provisions projects/<name>/project.db and scripts/):
+  CREATE PROJECT <project_name>;
+  Example: CREATE PROJECT hyper_web_sim;
+
+- Switch / Activate a project workspace:
+  USE PROJECT <project_name>;
+  Example: USE PROJECT default;  (or ACTIVATE PROJECT default;)
+
+- List all projects and see which is active:
+  LIST PROJECTS;
+
+---
+
+## 2. DATABASE DDL & CRUD (SQL SYNTAX):
+All operations execute against the currently active project's SQLite database (WAL mode, foreign keys enabled).
+
+- Schema Introspection (Discover Tables):
+  SELECT type, name, tbl_name, sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY type, name;
+
+- Create Tables (Batch DDL using semicolons):
+  CREATE TABLE IF NOT EXISTS nodes (
+      id TEXT PRIMARY KEY,
+      label TEXT NOT NULL,
+      status TEXT DEFAULT 'active',
+      energy REAL DEFAULT 100.0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS links (
+      source_id TEXT NOT NULL,
+      target_id TEXT NOT NULL,
+      weight REAL DEFAULT 1.0,
+      PRIMARY KEY (source_id, target_id)
+  );
+
+- CRUD Operations (DML):
+  * CREATE (Insert records):
+    INSERT INTO nodes (id, label, energy) VALUES ('node_1', 'Sensor A', 95.0), ('node_2', 'Sensor B', 120.0);
+
+  * READ (Select records):
+    SELECT * FROM nodes WHERE status = 'active' ORDER BY energy DESC;
+
+  * UPDATE (Modify records):
+    UPDATE nodes SET energy = energy + 15.0 WHERE id = 'node_1';
+
+  * DELETE (Remove records):
+    DELETE FROM nodes WHERE energy <= 0.0;
+
+---
+
+## 3. REGISTERING SIMULATION SCRIPTS:
+When registered, routines are automatically saved to SQLite (sim_scripts) AND bundled as a .py file in projects/<project>/scripts/<script_id>.py.
+
+- Option A: Console Command Syntax (Recommended):
+  SAVE SCRIPT agent_forage
+  NAME: Agent Foraging Routine
+  DESCRIPTION: Foragers move toward food tiles and recharge
+  CODE:
+  def step(state, params, emit_step):
+      entities = [dict(e) for e in state["entities"]]
+      events = []
+      for e in entities:
+          e["x"] = min(state["width"] - 1, e["x"] + 1)
+          events.append({"step": state["step"] + 1, "action": "wander", "entity": e["id"]})
+      emit_step(new_entities=entities, new_cells=state["cells"], new_events=events)
+
+- Option B: SQL Insert Syntax:
+  INSERT OR REPLACE INTO sim_scripts (id, name, description, script_body, default_params)
+  VALUES (
+      'agent_forage',
+      'Agent Foraging Routine',
+      'Foragers move toward food tiles',
+      'def step(state, params, emit_step):
+      entities = [dict(e) for e in state["entities"]]
+      emit_step(new_entities=entities, new_cells=state["cells"], new_events=[])',
+      '{}'
+  );
+
+- List All Registered Scripts:
+  LIST SCRIPTS;
+
+---
+
+## 4. RUNNING SIMULATION SCRIPTS:
+Advances the simulation by N steps, appending sequential frames to sim_telemetry:
+- Console Command:
+  RUN SCRIPT agent_forage STEPS 5;
+  (Or shorthand: RUN agent_forage 5; or SQL: SELECT sim_run('agent_forage', 5);)
+
+- Visualizer:
+  Open /sim-viewer to watch live state updates, inspect attributes, or use the 0.25 FPS auto-step play button.
+`;
+
+        async function showLLMInstructions() {
+            outputEl.innerText = LLM_SYSTEM_PROMPT;
+            try {
+                await navigator.clipboard.writeText(LLM_SYSTEM_PROMPT);
+                setStatus('Copied LLM prompt to clipboard & displayed in stream');
+            } catch (e) {
+                setStatus('LLM instructions displayed in stream');
+            }
+        }
+
+        async function loadProjects() {
+            try {
+                const res = await fetch('/api/projects');
+                if (!res.ok) return;
+                const projects = await res.json();
+                const sel = document.getElementById('projectSelect');
+                sel.innerHTML = '';
+                projects.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.name;
+                    opt.innerText = p.name + (p.scripts_count > 0 ? ` (${p.scripts_count} scripts)` : '');
+                    if (p.is_active) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+            } catch (e) {
+                console.error('Failed to load projects', e);
+            }
+        }
+
+        async function onSwitchProject(projectName) {
+            setStatus(`Activating project ${projectName}...`);
+            try {
+                const res = await fetch('/api/projects/activate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: projectName })
+                });
+                if (res.ok) {
+                    setStatus(`Active project: ${projectName}`);
+                    fetchSchema();
+                } else {
+                    const data = await res.json();
+                    setStatus(`Failed: ${data.detail}`, true);
+                }
+            } catch (err) {
+                setStatus(`Error activating project: ${err.message}`, true);
+            }
+        }
+
+        async function promptNewProject() {
+            const name = prompt('Enter new project name (alphanumeric/underscores):');
+            if (!name || !name.trim()) return;
+            const desc = prompt('Enter project description (optional):') || '';
+            setStatus(`Creating project ${name.trim()}...`);
+            try {
+                const res = await fetch('/api/projects/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name.trim(), description: desc })
+                });
+                if (res.ok) {
+                    await onSwitchProject(name.trim());
+                    await loadProjects();
+                } else {
+                    const data = await res.json();
+                    alert(`Failed to create project: ${data.detail}`);
+                    setStatus('Project creation failed', true);
+                }
+            } catch (err) {
+                alert(`Error: ${err.message}`);
+                setStatus('Project creation error', true);
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadProjects();
+        });
+    </script>
+</body>
+</html>
+
