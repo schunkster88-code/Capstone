@@ -3,6 +3,8 @@
 **Author:** Wesley A. Schunk  
 **Target Academic Milestone:** WGU B.S. Computer Science Capstone (C964) / Data Structures & Algorithms (C949/C950) Applied Research  
 **Repository:** `/home/wes/projects/CapStone`  
+**Contact:** Wesley A. Schunk (schunkster88@gmail.com) | ZeroSelf, LLC  
+**License:** Dual-Licensed under GNU AGPLv3 / Commercial License  
 **Provenance & Methodology Note:** *Phase 1 of this project was architected and empirically benchmarked through human-directed AI systems prototyping. Phase 2 focuses on formalizing the relational algebra, decomposing the Python/SQLite implementation line-by-line, and expanding the ingestion engine to demonstrate complete individual mastery of the underlying computer science primitives.*
 
 ---

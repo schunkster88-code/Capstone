@@ -1,3 +1,8 @@
+# Copyright (c) 2026 Wesley A. Schunk (ZeroSelf, LLC)
+# SPDX-License-Identifier: AGPL-3.0-only
+# Commercial licenses & inquiries: schunkster88@gmail.com
+# See LICENSE and README.md for Dual-License terms.
+
 import sqlite3
 from pathlib import Path
 from tools.map_codebase import index_codebase

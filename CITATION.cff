@@ -3,6 +3,8 @@ message: "If you use this relational hypergraph substrate architecture or benchm
 authors:
   - family-names: "Schunk"
     given-names: "Wesley A."
+    email: "schunkster88@gmail.com"
+    affiliation: "ZeroSelf, LLC / Western Governors University"
 title: "Deterministic Relational Hypergraphs as a Bounded-Context Substrate for Autonomous Software Maintenance and State Simulation"
 version: 1.0.0
 date-released: 2026-11-10

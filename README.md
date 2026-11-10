@@ -148,13 +148,17 @@ pytest
 
 ## 6. License & Commercial Dual-Licensing
 
-This repository and the underlying relational hypergraph substrate architecture are copyrighted by **Wesley A. Schunk** and made available under a **Dual-License** model:
+This repository and the underlying relational hypergraph substrate architecture are copyrighted by **Wesley A. Schunk (ZeroSelf, LLC)** and made available under a **Dual-License** model:
 
 1. **Open-Source & Academic License (GNU AGPLv3):**
-   This software is free for academic evaluation, research verification, and open-source projects under the **GNU Affero General Public License v3.0 (AGPL-3.0)**. Under Section 13 of the AGPLv3, any entity that modifies, embeds, or operates this software over a network (including SaaS, cloud APIs, or hosted agent workflows) **must disclose and release the complete source code of their entire derivative system under the AGPLv3**.
+   This software is free for academic evaluation, research verification, and open-source projects under the **GNU Affero General Public License v3.0 (`AGPL-3.0-only`)**. Under Section 13 of the AGPLv3, any entity that modifies, embeds, or operates this software over a network (including SaaS, cloud APIs, or hosted agent workflows) **must disclose and release the complete source code of their entire derivative system under the AGPLv3**.
 
 2. **Commercial License (Closed-Source / Enterprise):**
-   If you wish to integrate this relational substrate, multiplex tracing architecture, or deterministic state engine into a proprietary, closed-source commercial product, internal enterprise toolchain, or hosted SaaS platform without the copyleft disclosure requirements of the AGPLv3, you must obtain a separate **Commercial License** from the copyright holder (**Wesley A. Schunk / ZeroSelf, LLC**).
+   If you wish to integrate this relational substrate, multiplex tracing architecture, or deterministic state engine into a proprietary, closed-source commercial product, internal enterprise toolchain, or hosted SaaS platform without the copyleft disclosure requirements of the AGPLv3, you must obtain a separate **Commercial License** from the copyright holder.
+
+### Contact & Licensing Inquiries
+* **Author:** Wesley A. Schunk (ZeroSelf, LLC)
+* **Email:** [schunkster88@gmail.com](mailto:schunkster88@gmail.com)
 
 ### Academic Citation
 If you utilize this relational hypergraph substrate architecture, empirical gauntlet benchmarks, or deterministic world simulation engine in your research, coursework, or systems engineering work, please cite it as:
