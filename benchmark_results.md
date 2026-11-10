@@ -11,10 +11,10 @@
 
 | Metric | Grep / Text Search | Relational Substrate | Delta / Improvement |
 | :--- | :--- | :--- | :--- |
-| **Search / Traversal Latency** | 9.020 ms | 0.098 ms | 92.0x faster |
+| **Search / Traversal Latency** | 9.669 ms | 0.131 ms | 73.8x faster |
 | **Payload Size (Tokens)** | 9479.8 tokens | 199.0 tokens | -97.9% reduction |
 | **False Positive Noise** | 4 files (36 raw matches) | 0 (exact path) | 100% precision |
-| **Total Indexing Time** | N/A | 50.89 ms | One-time cost |
+| **Total Indexing Time** | N/A | 53.69 ms | One-time cost |
 
 ---
 
@@ -39,6 +39,6 @@ The relational substrate retrieved only the minimal, high-signal node summary ca
 ## 3. Key Empirical Findings
 
 1. **Token Efficiency:** The relational substrate consumed only **199.0 tokens** compared to **9479.8 tokens** for grep context windows—an empirical **97.9% reduction**.
-2. **Speed:** SQLite indexed recursive CTE query resolved the multi-hop call chain in **0.098 ms**, achieving a **92.04x speedup** over disk-based text searches.
+2. **Speed:** SQLite indexed recursive CTE query resolved the multi-hop call chain in **0.131 ms**, achieving a **73.81x speedup** over disk-based text searches.
 3. **Precision:** Grep returned 6 files with 4 false-positive files (core/sim_runner.py, core/void_engine.py, tests/test_benchmark_traversal.py, tests/test_refactor_blast_radius.py), whereas the substrate isolated the exact execution chain with **100% precision**.
-4. **One-Time Cost:** Building the relational substrate (`code_substrate.db`) across all project files required a one-time indexing cost of **50.89 ms**.
+4. **One-Time Cost:** Building the relational substrate (`code_substrate.db`) across all project files required a one-time indexing cost of **53.69 ms**.
